@@ -1,6 +1,6 @@
 <?php
 //Inicio del procesamiento
-session_start();
+require_once __DIR__.'/includes/config.php';
 
 $formEnviado = isset($_POST['registro']);
 if (! $formEnviado ) {
