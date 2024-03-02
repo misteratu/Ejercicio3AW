@@ -1,58 +1,70 @@
 <?php
-// Aplicacion.php
-class Aplicacion {
+
+class Aplicacion
+{
     private static $instancia;
-    private $conexion;
+    private $bdDatosConexion;
+    private $inicializada = false;
+    private $conn;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
-    public static function getInstance() {
+    public static function getInstance()
+    {
         if (!self::$instancia instanceof self) {
-            self::$instancia = new self;
+            self::$instancia = new static();
         }
         return self::$instancia;
     }
 
-    public function init($bdDatosConexion) {
-        session_start();
-        $this->conexion = $this->crearConexion($bdDatosConexion);
-    }
-
-    private function crearConexion($bdDatosConexion) {
-        // Crear la conexión con la BD utilizando los datos proporcionados
-        $host = $bdDatosConexion['localhost'];
-        $bd = $bdDatosConexion[`ejercicio3`];
-        $user = $bdDatosConexion['admin'];
-        $pass = $bdDatosConexion['adminpass'];
-        // Ejemplo de conexión a MySQL
-        $conexion = new mysqli($host, $user, $pass, $bd);
-        if ($conexion->connect_error) {
-            die("Error de conexión: " . $conexion->connect_error);
+    public function init($bdDatosConexion)
+    {
+        if (!$this->inicializada) {
+            $this->bdDatosConexion = $bdDatosConexion;
+            $this->inicializada = true;
+            session_start();
         }
-        return $conexion;
     }
 
-    public function getConexionBd() {
-        return $this->conexion;
-    } 
+    public function shutdown()
+    {
+        $this->compruebaInstanciaInicializada();
+        if ($this->conn !== null && !$this->conn->connect_errno) {
+            $this->conn->close();
+        }
+    }
+
+    private function compruebaInstanciaInicializada()
+    {
+        if (!$this->inicializada) {
+            echo "Aplicacion no inicializa";
+            exit();
+        }
+    }
+
+    public function getConexionBd()
+    {
+        $this->compruebaInstanciaInicializada();
+        if (!$this->conn) {
+            $bdHost = $this->bdDatosConexion['host'];
+            $bdUser = $this->bdDatosConexion['user'];
+            $bdPass = $this->bdDatosConexion['pass'];
+            $bd = $this->bdDatosConexion['bd'];
+
+            $conn = new mysqli($bdHost, $bdUser, $bdPass, $bd);
+            if ($conn->connect_errno) {
+                echo "Error de conexión a la BD ({$conn->connect_errno}):  {$conn->connect_error}";
+                exit();
+            }
+            if (!$conn->set_charset("utf8mb4")) {
+                echo "Error al configurar la BD ({$conn->errno}):  {$conn->error}";
+                exit();
+            }
+            $this->conn = $conn;
+        }
+        return $this->conn;
+    }
 }
-
-// config.php
-$bdDatosConexion = array(
-    'host' => 'localhost',
-    'bd' => 'nombre_bd',
-    'user' => 'usuario_bd',
-    'pass' => 'contraseña_bd'
-);
-Aplicacion::getInstance()->init($bdDatosConexion);
-
-// procesarLogin.php
-Aplicacion::getInstance()->init($bdDatosConexion);
-$conexion = Aplicacion::getInstance()->getConexionBd();
-// Resto del código para procesar el login utilizando la conexión a la BD
-
-// procesarRegistro.php
-Aplicacion::getInstance()->init($bdDatosConexion);
-$conexion = Aplicacion::getInstance()->getConexionBd();
-// Resto del código para procesar el registro utilizando la conexión a la BD
 ?>
