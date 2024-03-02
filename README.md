@@ -1,5 +1,5 @@
 # Ejercicio3AW
 
-Ejercicios realizados : `1`, `2`, `3`
+Ejercicios realizados : `1`, `2`, `3`, `4`, `5`, `6`
 
-Ejercicio 4 falta la modificacion de los dos ficheros `procesarLogin.php` y `procesarRegistro.php`
+Falta el `7`
